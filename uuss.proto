@@ -1,0 +1,101 @@
+package uuss;
+
+option optimize_for = SPEED;
+
+message GetRequest {
+    required string game = 1;
+    required string user_id = 2;
+    optional bool create_if_missing = 3 [ default = false ];
+    optional bool lock = 4 [ default = false ];
+    optional string lock_label = 5;
+    optional int32 lock_timeout = 6 [default = 60 ];
+    optional int32 lock_max_wait = 7 [ default = 30 ];
+}
+
+message GetResponse {
+    required string game = 1;
+    required string user_id = 2;
+    required bytes state = 3;
+}
+
+message ReleaseLock {
+    required string game = 1;
+    required string user_id = 2;
+}
+
+message LockReleased {
+    required string game = 1;
+    required string user_id = 2;
+}
+
+message SaveRequest {
+    required string game = 1;
+    required string user_id = 2;
+    required bytes state = 3;
+}
+
+message SaveResponse {
+    required string game = 1;
+    required string user_id = 2;
+}
+
+message GetMessagesRequest {
+    required string game = 1;
+    required string user_id = 2;
+}
+
+message GetMessagesResponse {
+    required string game = 1;
+    required string user_id = 2;
+    repeated string messages = 3;
+}
+
+message SendMessageRequest {
+    required string game = 1;
+    required string user_id = 2;
+    required string source_game = 3;
+    required string source_user_id = 4;
+    required string message = 5;
+    optional uint32 priority = 6 [ default = 0 ];
+    optional string message_id = 7;
+}
+
+message SendMessageResponse {
+    required string game = 1;
+    required string user_id = 2;
+    required string message_id = 3;
+}
+
+message RemoveMessagesRequest {
+    required string game = 1;
+    required string user_id = 2;
+    repeated string message_ids = 3;
+}
+
+message RemoveMessagesResponse {
+    required string game = 1;
+    required string user_id = 2;
+}
+
+message Ping {
+    required uint32 counter = 1;
+}
+
+message Pong {
+    required uint32 counter = 1;
+}
+
+message ExceptionResponse {
+    optional string message = 1;
+    optional string traceback = 2;
+}
+
+message DeleteRequest {
+    required string game = 1;
+    required string user_id = 2;
+}
+
+message DeleteResponse {
+    required string game = 1;
+    required string user_id = 2;
+}

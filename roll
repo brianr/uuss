@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+import argparse
+import re
+import shlex
+import subprocess
+import sys
+
+def munge_arg(arg):
+    if arg[:4] == "prod":
+        return "production"
+    if arg[:4] == "stag":
+        return "staging"
+    return arg
+
+def munge_args(args):
+    return [munge_arg(arg) for arg in args]
+
+def parse_args(args):
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Roll UUSS')
+    parser.add_argument('-e', '--environment',
+                        choices=['production', 'staging', 'next', 'beta', 'release', 'support', 'sandbox', 'alpha'],
+                        help='The environment to roll to',
+                        required=True)
+    parser.add_argument('-g', '--game',
+                        choices=['india', 'dane', 'rich', 'victoria'],
+                        help="""The game we're deploying for""",
+                        required=True)
+    parser.add_argument('hosts', metavar="host", type=str, nargs='*',
+                        help='''Host to deploy to. If none given, defaults will be used.''')
+    return parser.parse_args(args)
+
+def main(args):
+    args = munge_args(args)
+    args = parse_args(args)
+    if args.hosts:
+        hosts = args.hosts
+    else:
+        if args.environment == "production":
+            hosts = [ host[2] for host in 
+                      [ re.split(r'\s+',
+                                 # remove comments
+                                 re.sub(r'#.*$', r'', line.strip()))
+                        for line
+                        in open('/etc/hosts', 'r').readlines()]
+                      if len(host) > 2 and args.game in host[2] and 'uuss' in host[2] ]
+        elif args.game in [ "india", "rich" ] or (args.game == "dane" and args.environment in ["release", "next"]):
+            hosts = [ "%s-%s" % (args.game, args.environment) ]
+        else:
+            hosts = [ "dev3" ]
+    cmd = "./do_roll.sh %s %s" % (args.environment, args.game)
+    process = subprocess.Popen(shlex.split(cmd) + hosts)
+    process.wait()
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
